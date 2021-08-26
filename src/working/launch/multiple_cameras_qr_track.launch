@@ -1,0 +1,22 @@
+<launch>
+	<arg name="marker_size" default="11" />
+	<arg name="max_new_marker_error" default="0.08" />
+	<arg name="max_track_error" default="0.2" />
+
+	<arg name="cam1_image_topic" default="/camera1/color/image_raw" />
+	<arg name="cam1_info_topic" default="/camera1/color/camera_info" />
+	<arg name="cam1_output_frame" default="qr_cam1" />
+
+  <node pkg="visp_auto_tracker" type="visp_auto_tracker" name="visp_auto_tracker">
+    <param name="model_path" value="$(find visp_auto_tracker)/models" />
+    <param name="model_name" value="pattern" />
+    <param name="debug_display" value="True" />
+    <param name="tracker_ref_frame" value="$(arg cam1_output_frame)"/>
+
+    <remap from="/visp_auto_tracker/camera_info" to="$(arg cam1_info_topic)"/>
+    <remap from="/visp_auto_tracker/image_raw" to="$(arg cam1_image_topic)"/>
+  </node>
+<!--     </node> -->
+
+
+</launch>
