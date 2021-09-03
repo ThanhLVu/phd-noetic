@@ -1,0 +1,18 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "",
+        "limitSymbolsToIncludedHeaders": true
+      },
+      "includePath": [
+        "/home/thanh-long-vu/github/phd-noetic/devel/include/**",
+        "/opt/ros/kinetic/include/**",
+        "/home/thanh-long-vu/github/phd-noetic/src/realsense-ros/realsense2_camera/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS"
+    }
+  ],
+  "version": 4
+}

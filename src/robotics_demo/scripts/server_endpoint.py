@@ -17,13 +17,18 @@ def main():
     tcp_server.start({
         'pos_rot': RosPublisher('pos_rot', PosRot, queue_size=10),
         'color': RosSubscriber('color', UnityColor, tcp_server),
-	'image_rgb': RosSubscriber('/camera/color/image_raw/compressed', CompressedImage, tcp_server),
-        'image_depth_lower': RosSubscriber('/camera/depth/image_lower/compressed', CompressedImage, tcp_server),
-        'image_depth_upper': RosSubscriber('/camera/depth/image_upper/compressed', CompressedImage, tcp_server),
+	    'image_rgb_1': RosSubscriber('/cam_1/color/image_raw/compressed', CompressedImage, tcp_server),
+        'image_depth_lower_1': RosSubscriber('/cam_1/depth/image_lower/compressed', CompressedImage, tcp_server),
+        'image_depth_upper_1': RosSubscriber('/cam_1/depth/image_upper/compressed', CompressedImage, tcp_server),
+        'image_rgb_2': RosSubscriber('/cam_2/color/image_raw/compressed', CompressedImage, tcp_server),
+        'image_depth_lower_2': RosSubscriber('/cam_2/depth/image_lower/compressed', CompressedImage, tcp_server),
+        'image_depth_upper_2': RosSubscriber('/cam_2/depth/image_upper/compressed', CompressedImage, tcp_server),
         #'camera_pose': RosSubscriber('/camera/pose', PoseStamped, tcp_server),
         #'headset_pose': RosSubscriber('/headset/pose', PoseStamped, tcp_server),
-        'info_rgb': RosSubscriber('/camera/color/camera_info', CameraInfo, tcp_server),
-        'info_depth': RosSubscriber('/camera/depth/camera_info', CameraInfo, tcp_server),
+        'info_rgb_1': RosSubscriber('/cam_1/color/camera_info', CameraInfo, tcp_server),
+        'info_depth_1': RosSubscriber('/cam_1/depth/camera_info', CameraInfo, tcp_server),
+        'info_rgb_2': RosSubscriber('/cam_2/color/camera_info', CameraInfo, tcp_server),
+        'info_depth_2': RosSubscriber('/cam_2/depth/camera_info', CameraInfo, tcp_server),
     })
     
     rospy.spin()

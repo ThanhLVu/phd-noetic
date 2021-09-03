@@ -2,12 +2,13 @@ cmake_minimum_required(VERSION 2.8.3)
 project(working)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED  
+  rospy
   roscpp  
   std_msgs 
   geometry_msgs 
@@ -19,6 +20,7 @@ find_package(catkin REQUIRED
   tf2_ros
   message_generation
   visualization_msgs
+  ros_tcp_endpoint
 )
 
 ## System dependencies are found with CMake's conventions
@@ -113,7 +115,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES neo_simulation
-CATKIN_DEPENDS cv_bridge image_transport roscpp sensor_msgs std_msgs tf2_ros message_runtime visualization_msgs
+CATKIN_DEPENDS cv_bridge image_transport rospy roscpp sensor_msgs std_msgs tf2_ros message_runtime visualization_msgs ros_tcp_endpoint
 #  DEPENDS system_lib
 )
 
@@ -234,3 +236,11 @@ target_link_libraries (split_depth_image ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES
 
 add_executable (combine_cameras_sim src/combine_cameras_sim.cpp)
 target_link_libraries (combine_cameras_sim ${catkin_LIBRARIES}  ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
+
+add_executable (combine_cameras_real src/combine_cameras_real.cpp)
+target_link_libraries (combine_cameras_real ${catkin_LIBRARIES}  ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
+
+catkin_install_python(PROGRAMS
+  scripts/server_endpoint.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
