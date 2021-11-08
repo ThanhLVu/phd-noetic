@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(working)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
+add_compile_options(-std=c++14)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -239,6 +239,9 @@ target_link_libraries (combine_cameras_sim ${catkin_LIBRARIES}  ${PCL_LIBRARIES}
 
 add_executable (combine_cameras_real src/combine_cameras_real.cpp)
 target_link_libraries (combine_cameras_real ${catkin_LIBRARIES}  ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
+
+add_executable (bounding_box_arm_removed src/bounding_box_arm_removed.cpp)
+target_link_libraries (bounding_box_arm_removed ${catkin_LIBRARIES}  ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
 
 catkin_install_python(PROGRAMS
   scripts/server_endpoint.py
