@@ -222,8 +222,20 @@ target_link_libraries (remove_ground_extract_cluster ${PCL_LIBRARIES} ${catkin_L
 add_executable (intensity_scan_filter src/intensity_scan_filter.cpp)
 target_link_libraries (intensity_scan_filter ${catkin_LIBRARIES})
 
-add_executable (camera_calibration src/camera_calibration.cpp)
-target_link_libraries (camera_calibration ${catkin_LIBRARIES} library)
+add_executable (camera_calibration_ar src/camera_calibration_ar.cpp)
+target_link_libraries (camera_calibration_ar ${catkin_LIBRARIES} library)
+
+add_executable (camera_calibration_qr_sim src/camera_calibration_qr_sim.cpp)
+target_link_libraries (camera_calibration_qr_sim ${catkin_LIBRARIES} library)
+
+add_executable (camera_calibration_qr_real src/camera_calibration_qr_real.cpp)
+target_link_libraries (camera_calibration_qr_real ${catkin_LIBRARIES} library)
+
+add_executable (multi_camera_calibration_qr_real src/multi_camera_calibration_qr_real.cpp)
+target_link_libraries (multi_camera_calibration_qr_real ${catkin_LIBRARIES} library)
+
+add_executable (multi_camera_qr_annotation src/multi_camera_qr_annotation.cpp)
+target_link_libraries (multi_camera_qr_annotation ${catkin_LIBRARIES} library)
 
 add_executable (depth_image_to_pointcloud src/depth_image_to_pointcloud.cpp)
 target_link_libraries (depth_image_to_pointcloud ${catkin_LIBRARIES}  ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})

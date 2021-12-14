@@ -247,7 +247,7 @@ void removeGround()
     cluster_indices.clear();
 
     pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-    ec.setClusterTolerance (0.03); // 1cm
+    ec.setClusterTolerance (0.05); // 1cm
     ec.setMinClusterSize (200);
     ec.setMaxClusterSize (50000);
     ec.setSearchMethod (tree);

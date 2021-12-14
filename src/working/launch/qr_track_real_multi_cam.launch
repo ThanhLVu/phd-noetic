@@ -1,0 +1,33 @@
+<launch>
+	<!-- <arg name="marker_size" default="15" />
+	<arg name="max_new_marker_error" default="0.08" />
+	<arg name="max_track_error" default="0.2" /> -->
+
+	<arg name="cam1_image_topic" default="/camera1/color/image_raw" />
+	<arg name="cam1_info_topic" default="/camera1/color/camera_info" />
+	<arg name="cam1_output_frame" default="camera1_depth_optical_frame" />
+
+  <node pkg="visp_auto_tracker" type="visp_auto_tracker" name="visp_auto_tracker1">
+    <param name="model_path" value="$(find working)/models/QR_code" />
+    <param name="model_name" value="pattern_real_small" />
+    <param name="debug_display" value="True" />
+    <param name="tracker_ref_frame" value="$(arg cam1_output_frame)"/>
+
+    <remap from="/visp_auto_tracker1/camera_info" to="$(arg cam1_info_topic)"/>
+    <remap from="/visp_auto_tracker1/image_raw" to="$(arg cam1_image_topic)"/>
+  </node>
+
+	<arg name="cam2_image_topic" default="/camera2/color/image_raw" />
+	<arg name="cam2_info_topic" default="/camera2/color/camera_info" />
+	<arg name="cam2_output_frame" default="camera2_depth_optical_frame" />
+
+  <node pkg="visp_auto_tracker" type="visp_auto_tracker" name="visp_auto_tracker2">
+    <param name="model_path" value="$(find working)/models/QR_code" />
+    <param name="model_name" value="pattern_real_small" />
+    <param name="debug_display" value="True" />
+    <param name="tracker_ref_frame" value="$(arg cam2_output_frame)"/>
+
+    <remap from="/visp_auto_tracker2/camera_info" to="$(arg cam2_info_topic)"/>
+    <remap from="/visp_auto_tracker2/image_raw" to="$(arg cam2_image_topic)"/>
+  </node>
+</launch>
