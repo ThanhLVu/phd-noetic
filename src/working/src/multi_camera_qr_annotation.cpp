@@ -12,24 +12,24 @@
 #include <Eigen/Geometry>
 #include <stdio.h>
 
+// Constants
+const double QR_SIZE_OUTTER = 0.226;
+const double QR_SIZE_INNER = 0.113;
+const double QR_SIZE_CODE = 0.07;
+const std::string QR_LINK_NAME = "qr_main_link";
 // Past tf value containers
-std::vector<Eigen::Vector3d> translation_vec;
-std::vector<Eigen::Vector3d> rotation_vec;
 geometry_msgs::TransformStamped base_to_qr_transform;
-geometry_msgs::Pose depth1_to_qr_pose;
-geometry_msgs::TransformStamped cam1_to_depth1_transform;
-geometry_msgs::Pose depth2_to_qr_pose;
-geometry_msgs::TransformStamped cam2_to_depth2_transform;
+geometry_msgs::TransformStamped prev_base_to_qr_transform;
+geometry_msgs::TransformStamped base_to_qr_frame1;
+geometry_msgs::TransformStamped base_to_qr_frame2;
 // Flag values to prevent unnecessary variable update
 bool status1_flag= false;
 bool status2_flag= false;
 bool base_to_qr_flag = false;
 bool depth1_to_qr_flag = false;
 bool depth2_to_qr_flag = false;
-bool cam1_to_depth1_flag = false;
-bool cam2_to_depth2_flag = false;
-bool cam1_done = false;
-bool cam2_done = false;
+bool qr_frame_cam1 = false;
+bool qr_frame_cam2 = false;
 
 void generateTransformationMatrix(Eigen::Vector3d& translation, Eigen::Quaterniond& rotation, tf2::Transform& matrix)
 {
@@ -63,6 +63,8 @@ void qrPos1Callback(const geometry_msgs::PoseStamped::ConstPtr& msg)
     // If visp status is 3 (Tracking QR)
     if(!depth1_to_qr_flag && status1_flag)
     {
+        geometry_msgs::Pose depth1_to_qr_pose;
+
         depth1_to_qr_pose = msg->pose;
 
         depth1_to_qr_flag = true;
@@ -89,9 +91,12 @@ void qrPos1Callback(const geometry_msgs::PoseStamped::ConstPtr& msg)
 
 void qrPos2Callback(const geometry_msgs::PoseStamped::ConstPtr& msg)
 {
+
     // If visp status is 3 (Tracking QR)
     if(!depth2_to_qr_flag && status2_flag)
     {
+        geometry_msgs::Pose depth2_to_qr_pose;
+
         depth2_to_qr_pose = msg->pose;
 
         depth2_to_qr_flag = true;
@@ -144,109 +149,102 @@ void resetFlags()
     base_to_qr_flag = false;
     depth1_to_qr_flag = false;
     depth2_to_qr_flag = false;
-    cam1_to_depth1_flag = false;
-    cam2_to_depth2_flag = false;
+    qr_frame_cam1 = false;
+    qr_frame_cam2 = false;
 }
 
-void calculateTransformationMatrix()
+void getBaseToQR(tf2::Transform &base_to_qr_matrix)
 {
-    ROS_INFO("Calibrate cam 1");
-    if (base_to_qr_flag && depth1_to_qr_flag && cam1_to_depth1_flag)
+    base_to_qr_flag = true;
+    if(qr_frame_cam1 || qr_frame_cam2)
     {
-        // Process base_to_qr transform from tf_tree
-        tf2::Transform base_to_qr_matrix;
-
-        Eigen::Vector3d base_to_qr_trans(base_to_qr_transform.transform.translation.x, base_to_qr_transform.transform.translation.y, base_to_qr_transform.transform.translation.z);
-        Eigen::Quaterniond base_to_qr_rot(base_to_qr_transform.transform.rotation.w, base_to_qr_transform.transform.rotation.x, base_to_qr_transform.transform.rotation.y, base_to_qr_transform.transform.rotation.z);
-
-        // std::cout << base_to_qr_trans << std::endl;
-        // std::cout << base_to_qr_rot.w() << " " << base_to_qr_rot.x() << " " << base_to_qr_rot.y() << " " << base_to_qr_rot.z() << std::endl;
-
-        generateTransformationMatrix(base_to_qr_trans, base_to_qr_rot, base_to_qr_matrix);
-
-        // Process depth_to_qr transform from visp_auto_tracker/object_position topic
-        tf2::Transform depth1_to_qr_matrix;
-
-        Eigen::Vector3d depth1_to_qr_trans(depth1_to_qr_pose.position.x, depth1_to_qr_pose.position.y, depth1_to_qr_pose.position.z);
-        Eigen::Quaterniond depth1_to_qr_rot(depth1_to_qr_pose.orientation.w, depth1_to_qr_pose.orientation.x, depth1_to_qr_pose.orientation.y, depth1_to_qr_pose.orientation.z);
-
-        generateTransformationMatrix(depth1_to_qr_trans, depth1_to_qr_rot, depth1_to_qr_matrix);
-
-        // std::cout << depth1_to_qr_trans << std::endl;
-        // std::cout << depth1_to_qr_rot.w() << " " << depth1_to_qr_rot.x() << " " << depth1_to_qr_rot.y() << " " << depth1_to_qr_rot.z() << std::endl;
-
-        // Process cam_to_depth transform from tf_tree
-        tf2::Transform cam1_to_depth1_matrix;
-
-        Eigen::Vector3d cam1_to_depth1_trans(cam1_to_depth1_transform.transform.translation.x, cam1_to_depth1_transform.transform.translation.y, cam1_to_depth1_transform.transform.translation.z);
-        Eigen::Quaterniond cam1_to_depth1_rot(cam1_to_depth1_transform.transform.rotation.w, cam1_to_depth1_transform.transform.rotation.x, cam1_to_depth1_transform.transform.rotation.y, cam1_to_depth1_transform.transform.rotation.z);
-
-        // std::cout << cam1_to_depth1_trans << std::endl;
-        // std::cout << cam1_to_depth1_rot.w() << " " << cam1_to_depth1_rot.x() << " " << cam1_to_depth1_rot.y() << " " << cam1_to_depth1_rot.z() << std::endl;
-
-        generateTransformationMatrix(cam1_to_depth1_trans, cam1_to_depth1_rot, cam1_to_depth1_matrix);
-
-        // Calculate base_to_cam transform
-        tf2::Transform base_to_cam1_matrix;
-        base_to_cam1_matrix = base_to_qr_matrix.inverse() * depth1_to_qr_matrix.inverse() * cam1_to_depth1_matrix;
-
-        ROS_INFO("Camera1 to base_link transform: ");
-        std::cout << "==> Translation: " << base_to_cam1_matrix.getOrigin().x() << " " << base_to_cam1_matrix.getOrigin().y() << " " << base_to_cam1_matrix.getOrigin().z() << std::endl;
-        std::cout << "==> Rotataion quaternion: " << base_to_cam1_matrix.getRotation().w() << " " << base_to_cam1_matrix.getRotation().x() << " " << base_to_cam1_matrix.getRotation().y() << " " << base_to_cam1_matrix.getRotation().z() << std::endl;
-
-        broadcastTransform(base_to_cam1_matrix, "base_link", "camera1_link");
-        cam1_done = true;
+        if(qr_frame_cam1 && !qr_frame_cam2)
+        {   
+            base_to_qr_transform.header.frame_id = base_to_qr_frame1.header.frame_id;
+            base_to_qr_transform.transform = base_to_qr_frame1.transform;
+            base_to_qr_transform.child_frame_id = QR_LINK_NAME;
+        }
+        if(qr_frame_cam2 && !qr_frame_cam1)
+        {
+            base_to_qr_transform.header.frame_id = base_to_qr_frame2.header.frame_id;
+            base_to_qr_transform.transform = base_to_qr_frame2.transform;
+            base_to_qr_transform.child_frame_id = QR_LINK_NAME;
+        }
+        if(qr_frame_cam1 && qr_frame_cam2)
+        {
+            if(base_to_qr_frame1.header.frame_id == base_to_qr_frame2.header.frame_id)
+            {
+                base_to_qr_transform = base_to_qr_frame1;
+                base_to_qr_transform.child_frame_id = QR_LINK_NAME;
+                base_to_qr_transform.transform.translation.x = (base_to_qr_frame1.transform.translation.x 
+                                                            + base_to_qr_frame2.transform.translation.x) / 2;
+                base_to_qr_transform.transform.translation.y = (base_to_qr_frame1.transform.translation.y 
+                                                            + base_to_qr_frame2.transform.translation.y) / 2;
+                base_to_qr_transform.transform.translation.z = (base_to_qr_frame1.transform.translation.z 
+                                                            + base_to_qr_frame2.transform.translation.z) / 2;
+                base_to_qr_transform.transform.rotation.w = (base_to_qr_frame1.transform.rotation.w 
+                                                            + base_to_qr_frame2.transform.rotation.w) / 2;
+                base_to_qr_transform.transform.rotation.x = (base_to_qr_frame1.transform.rotation.x 
+                                                            + base_to_qr_frame2.transform.rotation.x) / 2;
+                base_to_qr_transform.transform.rotation.y = (base_to_qr_frame1.transform.rotation.y 
+                                                            + base_to_qr_frame2.transform.rotation.y) / 2;
+                base_to_qr_transform.transform.rotation.z = (base_to_qr_frame1.transform.rotation.z
+                                                            + base_to_qr_frame2.transform.rotation.z) / 2;
+            }
+            else ROS_ERROR("Wrong frame. Wrong frame. Wrong frame");
+        }
+        prev_base_to_qr_transform = base_to_qr_transform;
     }
+    else base_to_qr_transform = prev_base_to_qr_transform;
 
-    ROS_INFO("Calibration cam 2");
+    Eigen::Vector3d base_to_qr_trans(base_to_qr_transform.transform.translation.x, base_to_qr_transform.transform.translation.y, base_to_qr_transform.transform.translation.z);
+    Eigen::Quaterniond base_to_qr_rot(base_to_qr_transform.transform.rotation.w, base_to_qr_transform.transform.rotation.x, base_to_qr_transform.transform.rotation.y, base_to_qr_transform.transform.rotation.z);
+    generateTransformationMatrix(base_to_qr_trans, base_to_qr_rot, base_to_qr_matrix);
 
-    if (base_to_qr_flag && depth2_to_qr_flag && cam2_to_depth2_flag)
+    broadcastTransform(base_to_qr_matrix, "base_link", QR_LINK_NAME);
+}
+
+void generateQRCorners(tf2::Transform& base_to_qr_matrix, std::vector<tf2::Transform>& corners_list)
+{
+    corners_list.clear();
+    corners_list.resize(4);
+
+    tf2::Transform top_left_matrix; 
+    Eigen::Vector3d top_left_trans(QR_SIZE_OUTTER/2, QR_SIZE_OUTTER/2, 0);
+    Eigen::Quaterniond top_left_rot(1, 0, 0, 0);
+    generateTransformationMatrix(top_left_trans, top_left_rot, top_left_matrix);
+
+    corners_list.at(0) = base_to_qr_matrix * top_left_matrix;
+
+    tf2::Transform top_right_matrix; 
+    Eigen::Vector3d top_right_trans(-QR_SIZE_OUTTER/2, QR_SIZE_OUTTER/2, 0);
+    Eigen::Quaterniond top_right_rot(1, 0, 0, 0);
+    generateTransformationMatrix(top_right_trans, top_right_rot, top_right_matrix);
+
+    corners_list.at(1) = base_to_qr_matrix * top_right_matrix;
+
+    tf2::Transform bot_left_matrix; 
+    Eigen::Vector3d bot_left_trans(QR_SIZE_OUTTER/2, -QR_SIZE_OUTTER/2, 0);
+    Eigen::Quaterniond bot_left_rot(1, 0, 0, 0);
+    generateTransformationMatrix(bot_left_trans, bot_left_rot, bot_left_matrix);
+
+    corners_list.at(2) = base_to_qr_matrix * bot_left_matrix;
+
+    tf2::Transform bot_right_matrix; 
+    Eigen::Vector3d bot_right_trans(-QR_SIZE_OUTTER/2, -QR_SIZE_OUTTER/2, 0);
+    Eigen::Quaterniond bot_right_rot(1, 0, 0, 0);
+    generateTransformationMatrix(bot_right_trans, bot_right_rot, bot_right_matrix);
+
+    corners_list.at(3) = base_to_qr_matrix * bot_right_matrix;
+}
+
+void publishMarkers(std::vector<tf2::Transform>& corners_list)
+{
+    for(int i=0; i<corners_list.size(); i++)
     {
-        // Process base_to_qr transform from tf_tree
-        tf2::Transform base_to_qr_matrix;
-
-        Eigen::Vector3d base_to_qr_trans(base_to_qr_transform.transform.translation.x, base_to_qr_transform.transform.translation.y, base_to_qr_transform.transform.translation.z);
-        Eigen::Quaterniond base_to_qr_rot(base_to_qr_transform.transform.rotation.w, base_to_qr_transform.transform.rotation.x, base_to_qr_transform.transform.rotation.y, base_to_qr_transform.transform.rotation.z);
-
-        // std::cout << base_to_qr_trans << std::endl;
-        // std::cout << base_to_qr_rot.w() << " " << base_to_qr_rot.x() << " " << base_to_qr_rot.y() << " " << base_to_qr_rot.z() << std::endl;
-
-        generateTransformationMatrix(base_to_qr_trans, base_to_qr_rot, base_to_qr_matrix);
-
-        // Process depth_to_qr transform from visp_auto_tracker/object_position topic
-        tf2::Transform depth2_to_qr_matrix;
-
-        Eigen::Vector3d depth2_to_qr_trans(depth2_to_qr_pose.position.x, depth2_to_qr_pose.position.y, depth2_to_qr_pose.position.z);
-        Eigen::Quaterniond depth2_to_qr_rot(depth2_to_qr_pose.orientation.w, depth2_to_qr_pose.orientation.x, depth2_to_qr_pose.orientation.y, depth2_to_qr_pose.orientation.z);
-
-        generateTransformationMatrix(depth2_to_qr_trans, depth2_to_qr_rot, depth2_to_qr_matrix);
-
-        // std::cout << depth2_to_qr_trans << std::endl;
-        // std::cout << depth2_to_qr_rot.w() << " " << depth2_to_qr_rot.x() << " " << depth2_to_qr_rot.y() << " " << depth2_to_qr_rot.z() << std::endl;
-
-        // Process cam_to_depth transform from tf_tree
-        tf2::Transform cam2_to_depth2_matrix;
-
-        Eigen::Vector3d cam2_to_depth2_trans(cam2_to_depth2_transform.transform.translation.x, cam2_to_depth2_transform.transform.translation.y, cam2_to_depth2_transform.transform.translation.z);
-        Eigen::Quaterniond cam2_to_depth2_rot(cam2_to_depth2_transform.transform.rotation.w, cam2_to_depth2_transform.transform.rotation.x, cam2_to_depth2_transform.transform.rotation.y, cam2_to_depth2_transform.transform.rotation.z);
-
-        // std::cout << cam2_to_depth2_trans << std::endl;
-        // std::cout << cam2_to_depth2_rot.w() << " " << cam2_to_depth2_rot.x() << " " << cam2_to_depth2_rot.y() << " " << cam2_to_depth2_rot.z() << std::endl;
-
-        generateTransformationMatrix(cam2_to_depth2_trans, cam2_to_depth2_rot, cam2_to_depth2_matrix);
-
-        // Calculate base_to_cam transform
-        tf2::Transform base_to_cam2_matrix;
-        base_to_cam2_matrix = base_to_qr_matrix.inverse() * depth2_to_qr_matrix.inverse() * cam2_to_depth2_matrix;
-
-        ROS_INFO("Camera2 to base_link transform: ");
-        std::cout << "==> Translation: " << base_to_cam2_matrix.getOrigin().x() << " " << base_to_cam2_matrix.getOrigin().y() << " " << base_to_cam2_matrix.getOrigin().z() << std::endl;
-        std::cout << "==> Rotataion quaternion: " << base_to_cam2_matrix.getRotation().w() << " " << base_to_cam2_matrix.getRotation().x() << " " << base_to_cam2_matrix.getRotation().y() << " " << base_to_cam2_matrix.getRotation().z() << std::endl;
-
-        broadcastTransform(base_to_cam2_matrix, "base_link", "camera2_link");
-        resetFlags();
-        cam2_done = true;
+        broadcastTransform(corners_list.at(i), "base_link", "corner_"+i);
     }
+    resetFlags();
 }
 
 int main(int argc, char **argv)
@@ -271,66 +269,43 @@ int main(int argc, char **argv)
     ros::Subscriber sub_qr_pos2 = nh.subscribe("/visp_auto_tracker2/object_position", 1, qrPos2Callback);
     ros::Subscriber sub_qr_status2 = nh.subscribe("/visp_auto_tracker2/status", 1, qrStatus2Callback);
 
-    translation_vec.clear();
-    rotation_vec.clear();
-
     ros::Rate rate(10.0);
 
     while (ros::ok())
     {
-        // Get transform from base_link to qr_link (from the urdf model)
-        if(!base_to_qr_flag)
-        {
-            try
-            {
-                // Change link name if needed
-                base_to_qr_transform = tfBuffer.lookupTransform("qr_link", "base_link", ros::Time(0));
-            }
-            catch (tf2::TransformException &ex) {
-                ROS_WARN("%s", ex.what());
-                ros::Duration(1.0).sleep();
-                continue;
-            }
-            base_to_qr_flag = true;
-            ROS_INFO("Got base_to_qr information");
-        }
-
         // Get transform from camera_link to depth_link (from the urdf model)
-        if(!cam1_to_depth1_flag)
+        if(depth1_to_qr_flag && status1_flag)
         {
             try
             {
                 // Change link name if needed
-                cam1_to_depth1_transform = tfBuffer.lookupTransform("camera1_depth_optical_frame", "camera1_link", ros::Time(0));
+                base_to_qr_frame1 = tfBuffer.lookupTransform("visp_qr_frame1", "base_link", ros::Time(0));
             }
             catch (tf2::TransformException &ex) {
                 ROS_WARN("%s", ex.what());
                 ros::Duration(1.0).sleep();
                 continue;
             }
-            cam1_to_depth1_flag = true;
-            ROS_INFO("Got cam1_to_depth1 information");
+            
+            qr_frame_cam1 = true;
+            ROS_INFO("Got qr position from cam 1");
         }
 
-        if(!cam2_to_depth2_flag)
+        if(depth2_to_qr_flag && status2_flag)
         {
             try
             {
                 // Change link name if needed
-                cam2_to_depth2_transform = tfBuffer.lookupTransform("camera2_depth_optical_frame", "camera2_link", ros::Time(0));
+                base_to_qr_frame2 = tfBuffer.lookupTransform("visp_qr_frame2", "base_link", ros::Time(0));
             }
             catch (tf2::TransformException &ex) {
                 ROS_WARN("%s", ex.what());
                 ros::Duration(1.0).sleep();
                 continue;
             }
-            cam2_to_depth2_flag = true;
-            ROS_INFO("Got cam2_to_depth2 information");
+            qr_frame_cam2 = true;
+            ROS_INFO("Got qr position from cam 2");
         }
-
-        // Do calculation
-        calculateTransformationMatrix();
-        if(cam1_done && cam2_done) break;
 
         ros::spinOnce();
         rate.sleep();
