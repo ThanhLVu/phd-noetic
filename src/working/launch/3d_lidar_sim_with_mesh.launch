@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <!--set to the required robot and world-->
+    <arg name="robot_name"  value="Lidar3D"/>
+    <!--To launch RVIZ -->
+    <arg name="rviz" value="true"/>
+
+<!---=================================================================================================================================================================-->
+
+    <!--Gazebo Variables-->
+    <arg name="world" default="empty"/>
+    <arg name="paused" default="false"/>
+    <arg name="use_sim_time" default="true"/>
+    <arg name="gui" default="true"/>
+    <arg name="headless" default="false"/>
+    <arg name="debug" default="false"/>
+
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+
+        <arg name="world_name" value="$(arg world)"/>
+        <arg name="paused" value="$(arg paused)"/>
+        <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+        <arg name="gui" value="$(arg gui)"/>
+        <arg name="headless" value="$(arg headless)"/>
+        <arg name="debug" value="$(arg debug)"/>
+
+    </include>
+
+<!---=================================================================================================================================================================-->
+    <!--if arg rviz is set to true-->
+
+    <group if="$(arg rviz)">
+        <param name="robot_description" command="$(find xacro)/xacro '$(find working)/models/3DLidar/3d_lidar.xacro' name:=$(arg robot_name)"/>
+        <arg name="rvizconfig" default="/opt/ros/noetic/share/rviz/default.rviz" />
+        <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
+    </group>
+
+<!---=================================================================================================================================================================-->
+    <!-- Spawn lidar in gazebo-->
+    <param name="robot_description" command="$(find xacro)/xacro '$(find working)/models/3DLidar/3d_lidar.xacro'"/>
+
+    <node name="$(arg robot_name)_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
+    args="-urdf -param robot_description -model $(arg robot_name)" />
+
+    <node name="robot_state_publisher" 
+           pkg="robot_state_publisher"
+          type="robot_state_publisher">
+     <param name="publish_frequency" value="100.0"/>
+    </node>
+
+    <node pkg="vigir_point_cloud_proc" type="cloud_to_mesh_node" name="worldmodel_unfiltered_cloud_to_mesh_node" output="screen" respawn="true">
+        <remap from="~/cloud" to="/lidar3D/scan" />
+    </node>
+
+</launch>
