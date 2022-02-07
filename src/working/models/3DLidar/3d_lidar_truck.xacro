@@ -67,13 +67,13 @@
 <link name="base_link">
     <visual>
         <geometry>
-          <mesh filename="package://working/models/Truck/180tonnes_v4.dae"/>
+          <mesh filename="package://working/models/Truck/MR_Roboto.dae"/>
         </geometry>
         <origin xyz="0 0 0" rpy="0 0 0" />
     </visual>
     <collision>
         <geometry>
-          <mesh filename="package://working/models/Truck/180tonnes_v4.dae"/>
+          <mesh filename="package://working/models/Truck/MR_Roboto.dae"/>
         </geometry>
         <origin xyz="0 0 0" rpy="0 0 0" />
     </collision>
@@ -140,7 +140,7 @@
 
 <joint name="3d_lidar_joint" type="fixed">
     <axis xyz="0 1 0"/>
-    <origin rpy="0 ${M_PI/2} 0" xyz="0 0 10"/>
+    <origin rpy="0 ${M_PI/2} 0" xyz="0 0 8"/>
     <parent link="base_footprint"/>
     <child link="3d_lidar"/>
 </joint>
@@ -187,7 +187,7 @@
 
 <joint name="camera_link_joint" type="fixed">
     <axis xyz="0 1 0"/>
-    <origin rpy="0 ${M_PI/2} 0" xyz="0.2 0 10"/>
+    <origin rpy="0 ${M_PI/2} 0" xyz="1 0 7"/>
     <parent link="base_footprint"/>
     <child link="camera_link"/>
 </joint>

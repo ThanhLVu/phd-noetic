@@ -3,9 +3,9 @@
 	<arg name="max_new_marker_error" default="0.08" />
 	<arg name="max_track_error" default="0.2" /> -->
 
-	<arg name="cam1_image_topic" default="/camera1/color/image_raw" />
-	<arg name="cam1_info_topic" default="/camera1/color/camera_info" />
-	<arg name="cam1_output_frame" default="camera1_depth_optical_frame" />
+	<arg name="cam1_image_topic" default="/left_camera/color/image_raw" />
+	<arg name="cam1_info_topic" default="/left_camera/color/camera_info" />
+	<arg name="cam1_output_frame" default="left_camera_depth_optical_frame" />
 
   <node pkg="visp_auto_tracker" type="visp_auto_tracker" name="visp_auto_tracker1">
     <param name="model_path" value="$(find working)/models/QR_code" />
@@ -17,9 +17,9 @@
     <remap from="/visp_auto_tracker1/image_raw" to="$(arg cam1_image_topic)"/>
   </node>
 
-	<arg name="cam2_image_topic" default="/camera2/color/image_raw" />
-	<arg name="cam2_info_topic" default="/camera2/color/camera_info" />
-	<arg name="cam2_output_frame" default="camera2_depth_optical_frame" />
+	<arg name="cam2_image_topic" default="/right_camera/color/image_raw" />
+	<arg name="cam2_info_topic" default="/right_camera/color/camera_info" />
+	<arg name="cam2_output_frame" default="right_camera_depth_optical_frame" />
 
   <node pkg="visp_auto_tracker" type="visp_auto_tracker" name="visp_auto_tracker2">
     <param name="model_path" value="$(find working)/models/QR_code" />

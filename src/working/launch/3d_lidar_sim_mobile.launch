@@ -30,22 +30,45 @@
     <!--if arg rviz is set to true-->
 
     <group if="$(arg rviz)">
-        <param name="robot_description" command="$(find xacro)/xacro '$(find working)/models/3DLidar/3d_lidar_truck.xacro' name:=$(arg robot_name)"/>
+        <param name="robot_description" command="$(find xacro)/xacro '$(find working)/models/3DLidar/3d_lidar_mobile.xacro' name:=$(arg robot_name)"/>
         <arg name="rvizconfig" default="/opt/ros/noetic/share/rviz/default.rviz" />
         <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
     </group>
 
 <!---=================================================================================================================================================================-->
     <!-- Spawn lidar in gazebo-->
-    <param name="robot_description" command="$(find xacro)/xacro '$(find working)/models/3DLidar/3d_lidar_truck.xacro'"/>
+    <param name="robot_description" command="$(find xacro)/xacro '$(find working)/models/3DLidar/3d_lidar_mobile.xacro'"/>
 
     <node name="$(arg robot_name)_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
     args="-urdf -param robot_description -model $(arg robot_name)" />
 
-    <node name="robot_state_publisher" 
+    <!-- <node name="robot_state_publisher" 
            pkg="robot_state_publisher"
           type="robot_state_publisher">
      <param name="publish_frequency" value="100.0"/>
+    </node> -->
+
+    <!-- Load joint controller configurations from YAML file to parameter server -->
+    <rosparam file="$(find working)/config/lidar3D_control.yaml" command="load"/>
+
+    <!-- load the controllers -->
+    <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+        output="screen" ns="/lidar3D" args="joint_state_controller
+                                            lidar_1_pris1_joint_position_controller
+					                        lidar_1_pris2_joint_position_controller
+                                            lidar_1_pris3_joint_position_controller
+					                        lidar_1_rev1_joint_position_controller
+					                        lidar_1_rev2_joint_position_controller
+                                            lidar_1_rev3_joint_position_controller"/>
+
+
+    <!-- convert joint states to TF transforms for rviz, etc -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+        respawn="false" output="screen">
+        <remap from="/joint_states" to="/lidar3D/joint_states" />
     </node>
 
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <remap from="/joint_states" to="/lidar3D/joint_states" />
+    </node>
 </launch>

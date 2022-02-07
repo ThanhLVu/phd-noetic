@@ -238,22 +238,25 @@ add_executable (multi_camera_qr_annotation src/multi_camera_qr_annotation.cpp)
 target_link_libraries (multi_camera_qr_annotation ${catkin_LIBRARIES} library)
 
 add_executable (depth_image_to_pointcloud src/depth_image_to_pointcloud.cpp)
-target_link_libraries (depth_image_to_pointcloud ${catkin_LIBRARIES}  ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries (depth_image_to_pointcloud ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
 
 add_executable (unity_image_publisher src/unity_image_publisher.cpp)
-target_link_libraries (unity_image_publisher ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
+target_link_libraries (unity_image_publisher ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
 add_executable (split_depth_image src/split_depth_image.cpp)
-target_link_libraries (split_depth_image ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
+target_link_libraries (split_depth_image ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
 add_executable (combine_cameras_sim src/combine_cameras_sim.cpp)
-target_link_libraries (combine_cameras_sim ${catkin_LIBRARIES}  ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries (combine_cameras_sim ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
 
 add_executable (combine_cameras_real src/combine_cameras_real.cpp)
-target_link_libraries (combine_cameras_real ${catkin_LIBRARIES}  ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries (combine_cameras_real ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
 
 add_executable (bounding_box_arm_removed src/bounding_box_arm_removed.cpp)
-target_link_libraries (bounding_box_arm_removed ${catkin_LIBRARIES}  ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries (bounding_box_arm_removed ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
+
+add_executable (custom_control_nextore src/custom_control_nextore.cpp)
+target_link_libraries (custom_control_nextore ${catkin_LIBRARIES})
 
 catkin_install_python(PROGRAMS
   scripts/server_endpoint.py
