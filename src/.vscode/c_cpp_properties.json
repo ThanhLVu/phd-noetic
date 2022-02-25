@@ -1,20 +1,21 @@
 {
-  "configurations": [
-    {
-      "browse": {
-        "databaseFilename": "",
-        "limitSymbolsToIncludedHeaders": true
-      },
-      "includePath": [
-        "/home/long/phd/devel/include/**",
-        "/opt/ros/noetic/include/**",
-        "/home/long/phd/src/halo_project_hub/ros/halo_phidgets/include/**",
-        "/home/long/phd/src/halo_project_hub/ros/halo_ros_driver/include/**",
-        "/home/long/phd/src/vision_visp/visp_bridge/include/**",
-        "/usr/include/**"
-      ],
-      "name": "ROS"
-    }
-  ],
-  "version": 4
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/long/phd/devel/include/**",
+                "/opt/ros/noetic/include/**",
+                "/home/long/phd/src/halo_project_hub/ros/halo_phidgets/include/**",
+                "/home/long/phd/src/halo_project_hub/ros/halo_ros_driver/include/**",
+                "/home/long/phd/src/vision_visp/visp_bridge/include/**",
+                "/usr/include/**",
+                "${workspaceFolder}/working/library"
+            ],
+            "name": "ROS"
+        }
+    ],
+    "version": 4
 }

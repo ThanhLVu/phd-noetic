@@ -73,7 +73,6 @@ void translateZ(std_msgs::Float64 msg)
     pub_trans_z.publish(msg);
     ros::Rate loop_rate(10);
     loop_rate.sleep();
-    ros::spinOnce();
     while (1)
     {
         ros::spinOnce();
@@ -91,10 +90,8 @@ void rotateX(std_msgs::Float64 msg)
     ros::Rate loop_rate(10);
     loop_rate.sleep();
     ros::spinOnce();
-
     while (1)
     {
-        ros::spinOnce();
         std::cout << "Process RotX:\nTarget:" << state_rot_x.set_point << "\nCurrent:" << state_rot_x.process_value << std::endl;
         if (abs(state_rot_x.process_value_dot) < 0.02)
             break;

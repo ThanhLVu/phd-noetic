@@ -1,0 +1,34 @@
+<launch>
+
+  <!-- Load joint controller configurations from YAML file to parameter server -->
+  <rosparam file="$(find working)/config/nextore_control.yaml" command="load"/>
+
+  <!-- load the controllers -->
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+	output="screen" ns="/nextore_system" args="joint_state_controller
+					  lidar_1_pris1_joint_position_controller
+					  lidar_1_pris2_joint_position_controller
+                                          lidar_1_pris3_joint_position_controller
+					  lidar_1_rev1_joint_position_controller
+					  lidar_1_rev2_joint_position_controller
+                                          lidar_1_rev3_joint_position_controller
+				          lidar_2_pris1_joint_position_controller
+					  lidar_2_pris2_joint_position_controller
+                                          lidar_2_pris3_joint_position_controller
+					  lidar_2_rev1_joint_position_controller
+					  lidar_2_rev2_joint_position_controller
+                                          lidar_2_rev3_joint_position_controller
+					  Hitachi_truck_joint_position_controller
+					  Cat_truck_joint_position_controller"/>
+  
+  <!-- convert joint states to TF transforms for rviz, etc -->
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+  <node name="robot_state_publisher" 
+         pkg="robot_state_publisher"
+         type="robot_state_publisher"
+ 	respawn="false" output="screen">
+  <param name="publish_frequency" value="100.0"/>
+  <remap from="/joint_states" to="/nextore_system/joint_states" />
+  </node>
+
+</launch>

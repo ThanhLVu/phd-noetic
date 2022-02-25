@@ -113,8 +113,8 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES neo_simulation
+INCLUDE_DIRS library
+# LIBRARIES library
 CATKIN_DEPENDS cv_bridge image_transport rospy roscpp sensor_msgs std_msgs tf2_ros message_runtime visualization_msgs ros_tcp_endpoint
 #  DEPENDS system_lib
 )
@@ -128,7 +128,7 @@ CATKIN_DEPENDS cv_bridge image_transport rospy roscpp sensor_msgs std_msgs tf2_r
 include_directories(
 	${catkin_INCLUDE_DIRS}
 	${PCL_INCLUDE_DIRS}
-	${CMAKE_SOURCE_DIR}/working/library
+  library
 )
 
 ## Declare a C++ library
@@ -212,9 +212,9 @@ include_directories(
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-add_library(library library/expand_search.cpp library/clustering.cpp)
-
 link_directories(${CMAKE_SOURCE_DIR}/working/library)
+add_library(library library/expand_search.cpp library/clustering.cpp library/vox-file/vox_file.cpp)
+#target_link_libraries(library ${catkin_LIBRARIES})
 
 add_executable (remove_ground_extract_cluster src/remove_ground_extract_cluster.cpp)
 target_link_libraries (remove_ground_extract_cluster ${PCL_LIBRARIES} ${catkin_LIBRARIES} library)
@@ -257,6 +257,9 @@ target_link_libraries (bounding_box_arm_removed ${catkin_LIBRARIES} ${PCL_LIBRAR
 
 add_executable (custom_control_nextore src/custom_control_nextore.cpp)
 target_link_libraries (custom_control_nextore ${catkin_LIBRARIES})
+
+add_executable (voxelize_3d_object src/voxelize_3d_object.cpp)
+target_link_libraries (voxelize_3d_object ${catkin_LIBRARIES} ${PCL_LIBRARIES} library)
 
 catkin_install_python(PROGRAMS
   scripts/server_endpoint.py

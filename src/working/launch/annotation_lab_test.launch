@@ -1,0 +1,19 @@
+<launch>
+    <!-- Load the rosbag file -->
+    <node pkg="rosbag" type="play" name="player" output="screen" 
+        args="-l /home/long/phd/rosbags/down_2cam_objects_v3.bag"/>
+    <!-- Publish the topics (This should be done by tf in final system) -->
+    <!-- Format: Translation x y z Quaternion x y z w /parent /child -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_qr_tf_publisher" 
+        args="0.617 0 -0.041 -0.5 -0.5 0.5 0.5 /base_link /qr_link"/> 
+    <!-- Mid camera sample position -->
+    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_cam1_tf_publisher" 
+        args="0.0198918 0.548749 0.301975 0.947767 -0.254131 -0.179951 0.0690831 /base_link /camera1_link"/>
+    <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_cam2_tf_publisher" 
+        args="0.004632 -0.475033 0.296001 0.0621171 0.199283 0.223841 0.95201 /base_link /camera2_link"/> -->
+    <!-- Down camera sample position -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_cam1_tf_publisher" 
+        args="0.0323071 0.503596 0.296156 0.905771 -0.245925 -0.328738 0.10503 /base_link /camera1_link"/>
+    <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_cam2_tf_publisher" 
+        args="0.00599263 -0.516731 0.278787 0.120639 0.37606 0.217309 0.892638 /base_link /camera2_link"/>
+</launch>

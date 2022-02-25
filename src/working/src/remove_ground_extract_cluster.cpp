@@ -29,8 +29,6 @@
 #include <pcl/features/normal_3d.h>
 #include <pcl/segmentation/extract_clusters.h>
 
-//#include "expand_search.h"
-
 typedef pcl::PointXYZ PointType;
 
 pcl::PCLPointCloud2 *cloud = new pcl::PCLPointCloud2;

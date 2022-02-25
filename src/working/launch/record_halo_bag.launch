@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+<!-- Change the recorded bag name and where to store the bag here -->
+<arg name="bag_name" default="name"/>
+<arg name="bags_directory" value="/home/long/"/>
+
+<!-- Possible topics to record -->
+<!--
+    /camera1/color/camera_info 
+    /camera1/color/image_raw 
+    /camera1/color/image_raw/compressed
+
+    /camera1/depth/camera_info 
+    /camera1/depth/color/points 
+    /camera1/depth/image_rect_raw
+    /camera1/depth/image_rect_raw/compressed
+ 
+    /camera2/color/camera_info 
+    /camera2/color/image_raw 
+    /camera2/color/image_raw/compressed 
+    
+    /camera2/depth/camera_info 
+    /camera2/depth/color/points 
+    /camera2/depth/image_rect_raw 
+    /camera2/depth/image_rect_raw/compressed
+
+    /tf 
+    /tf_static 
+-->
+
+<node pkg="rosbag" type="record" name="camera_topics_recording"
+        args="record -o $(arg bags_directory) -O $(arg bag_name)
+    /camera1/color/camera_info 
+    /camera1/color/image_raw 
+    /camera1/color/image_raw/compressed
+
+    /camera1/depth/camera_info 
+    /camera1/depth/color/points 
+    /camera1/depth/image_rect_raw
+    /camera1/depth/image_rect_raw/compressed
+ 
+    /camera2/color/camera_info 
+    /camera2/color/image_raw 
+    /camera2/color/image_raw/compressed 
+    
+    /camera2/depth/camera_info 
+    /camera2/depth/color/points 
+    /camera2/depth/image_rect_raw 
+    /camera2/depth/image_rect_raw/compressed
+
+    /tf 
+    /tf_static 
+    ">
+</node>
+
+</launch>
