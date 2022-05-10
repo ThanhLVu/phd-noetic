@@ -31,24 +31,20 @@
 
 <node pkg="rosbag" type="record" name="camera_topics_recording"
         args="record -o $(arg bags_directory) -O $(arg bag_name)
-    /camera1/color/camera_info 
-    /camera1/color/image_raw 
-    /camera1/color/image_raw/compressed
-
-    /camera1/depth/camera_info 
-    /camera1/depth/color/points 
-    /camera1/depth/image_rect_raw
-    /camera1/depth/image_rect_raw/compressed
- 
-    /camera2/color/camera_info 
-    /camera2/color/image_raw 
-    /camera2/color/image_raw/compressed 
-    
-    /camera2/depth/camera_info 
-    /camera2/depth/color/points 
-    /camera2/depth/image_rect_raw 
-    /camera2/depth/image_rect_raw/compressed
-
+    /left_camera/color/camera_info 
+    /left_camera/color/image_raw 
+    /left_camera/color/image_raw/compressed
+    /left_camera/depth/camera_info 
+    /left_camera/depth/color/points 
+    /left_camera/depth/image_rect_raw
+    /left_camera/depth/image_rect_raw/compressed
+    /right_camera/color/camera_info 
+    /right_camera/color/image_raw 
+    /right_camera/color/image_raw/compressed 
+    /right_camera/depth/camera_info 
+    /right_camera/depth/color/points 
+    /right_camera/depth/image_rect_raw 
+    /right_camera/depth/image_rect_raw/compressed
     /tf 
     /tf_static 
     ">

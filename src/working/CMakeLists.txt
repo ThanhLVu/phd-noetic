@@ -213,7 +213,7 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 link_directories(${CMAKE_SOURCE_DIR}/working/library)
-add_library(library library/expand_search.cpp library/clustering.cpp library/vox-file/vox_file.cpp)
+add_library(library library/expand_search.cpp library/clustering.cpp library/vox-file/vox_file.cpp library/fov_check.cpp library/generate_viewpoint.cpp library/fov_check_v2.cpp)
 #target_link_libraries(library ${catkin_LIBRARIES})
 
 add_executable (remove_ground_extract_cluster src/remove_ground_extract_cluster.cpp)
@@ -260,6 +260,9 @@ target_link_libraries (custom_control_nextore ${catkin_LIBRARIES})
 
 add_executable (voxelize_3d_object src/voxelize_3d_object.cpp)
 target_link_libraries (voxelize_3d_object ${catkin_LIBRARIES} ${PCL_LIBRARIES} library)
+
+add_executable (voxelize_3d_object_v2 src/voxelize_3d_object_v2.cpp)
+target_link_libraries (voxelize_3d_object_v2 ${catkin_LIBRARIES} ${PCL_LIBRARIES} library)
 
 catkin_install_python(PROGRAMS
   scripts/server_endpoint.py
