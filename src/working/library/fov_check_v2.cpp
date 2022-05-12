@@ -5,8 +5,8 @@ FOVCheckV2::FOVCheckV2(pcl::PointCloud<pcl::PointXYZ> &cloud, pcl::PointCloud<pc
 {
     _input_cloud = cloud;
     _input_cloud_normal = normals;
-    _fov_idx = fov_center_idx;
-    _fov_center = _input_cloud.at(_fov_idx);
+    _fov_center_idx = fov_center_idx;
+    _fov_center = _input_cloud.at(_fov_center_idx);
     _viewpoint = viewpoint;
     _break_expand_flag = false;
 }
@@ -18,13 +18,18 @@ void FOVCheckV2::reset()
 void FOVCheckV2::initiateFOVCheck(std::vector<int> &fov_set_idx)
 {
     // First expansion
+    octomap::OcTree oc_tree(1);
+    oc_tree.clear();
+    // oc_tree.updateNode(_viewpoint.x, _viewpoint.y, _viewpoint.z, false);
+
     std::vector<int> old_points_in_range_idx;
     std::vector<int> new_points_in_range_idx;
     std::vector<int> points_in_fov_idx;
     this->radiusSearch(INITIAL_RANGE, new_points_in_range_idx);
     std::cout << "First loop radius search, points in range: " << new_points_in_range_idx.size() << std::endl;
-    this->checkAngle(new_points_in_range_idx, points_in_fov_idx);
+    this->checkAngle(new_points_in_range_idx, points_in_fov_idx, oc_tree);
     std::cout << "First loop radius search, points in fov: " << points_in_fov_idx.size() << std::endl;
+    this->updateOctree(new_points_in_range_idx, oc_tree);
     old_points_in_range_idx = new_points_in_range_idx;
     
     int counter = 1;
@@ -35,14 +40,16 @@ void FOVCheckV2::initiateFOVCheck(std::vector<int> &fov_set_idx)
         std::cout << counter << " loop radius search, points in range: " << new_points_in_range_idx.size() << std::endl;
         this->findNotPreviouslyExistedPoints(old_points_in_range_idx, new_points_in_range_idx);
         std::cout << counter << " loop radius search, new points found: " << new_points_in_range_idx.size() << std::endl;
-        this->checkAngle(new_points_in_range_idx, points_in_fov_idx);
+        this->checkAngle(new_points_in_range_idx, points_in_fov_idx, oc_tree);
         std::cout << counter << " loop radius search, points in fov: " << points_in_fov_idx.size() << std::endl;
+        this->updateOctree(new_points_in_range_idx, oc_tree);
         counter++;
+        // if(counter == 2) break;
     }
     fov_set_idx = points_in_fov_idx;
 }
 
-void FOVCheckV2::checkAngle(std::vector<int> &points_in_range_idx, std::vector<int> &points_in_fov_idx)
+void FOVCheckV2::checkAngle(std::vector<int> &points_in_range_idx, std::vector<int> &points_in_fov_idx, octomap::OcTree& oc_tree)
 {
     _break_expand_flag = true;
     std::vector<int> old_points_in_fov_idx;
@@ -55,10 +62,10 @@ void FOVCheckV2::checkAngle(std::vector<int> &points_in_range_idx, std::vector<i
         // pointNormalCheck(points_in_range_idx.at(i), angle_normal_check);
         // If is inside FOV
         // if(fabs(angle) < FOV_LIMITS && angle_normal_check > 0.5) 
-        // bool not_visible = false;
-        // visCheck(points_in_range_idx.at(i), old_points_in_fov_idx, not_visible);
-        // if(fabs(angle) < FOV_LIMITS && !not_visible)
-        if(fabs(angle) < FOV_LIMITS) 
+        bool visible = false;
+        visCheck(points_in_range_idx.at(i), oc_tree, visible);
+        if(fabs(angle) < FOV_LIMITS && visible)
+        // if(fabs(angle) < FOV_LIMITS) 
         {
             points_in_fov_idx.push_back(points_in_range_idx.at(i));
             _break_expand_flag = false;
@@ -122,30 +129,28 @@ void FOVCheckV2::pointNormalCheck(int &current_point_idx, double &result)
     result = current_point_normal.dot(viewpoint_to_fov_center) / (current_point_normal.norm() * viewpoint_to_fov_center.norm());
 }
 
-void FOVCheckV2::visCheck(int &current_point_idx, std::vector<int> &points_in_fov_idx, bool &result)
+void FOVCheckV2::visCheck(int &current_point_idx, octomap::OcTree &oc_tree, bool &result)
 {
-    Eigen::Vector3f viewpoint_to_others, viewpoint_to_current_point;
-    double dist_view_to_others, temp_storage;
+    octomap::point3d origin(_viewpoint.x, _viewpoint.y, _viewpoint.z);
+    octomap::point3d direction(_input_cloud.at(current_point_idx).x - _viewpoint.x,
+                               _input_cloud.at(current_point_idx).y - _viewpoint.y,
+                               _input_cloud.at(current_point_idx).z - _viewpoint.z);
+    octomap::point3d end;
 
-    viewpoint_to_current_point(0) = - _viewpoint.x + _input_cloud.at(current_point_idx).x;
-    viewpoint_to_current_point(1) = - _viewpoint.y + _input_cloud.at(current_point_idx).y;
-    viewpoint_to_current_point(2) = - _viewpoint.z + _input_cloud.at(current_point_idx).z;
+    bool hit_something = oc_tree.castRay(origin, direction, end, true, 200);
 
-    double min_dif = 180;
-    for(int i=0; i<points_in_fov_idx.size(); i++)
+    if(hit_something == false) result = true;
+    else
+        result = false;
+}
+
+void FOVCheckV2::updateOctree(std::vector<int> &new_points_in_range_idx, octomap::OcTree &oc_tree)
+{
+    for(int i=0; i< new_points_in_range_idx.size(); i++)
     {
-        viewpoint_to_others(0) = - _viewpoint.x + _input_cloud.at(points_in_fov_idx.at(i)).x;
-        viewpoint_to_others(1) = - _viewpoint.y + _input_cloud.at(points_in_fov_idx.at(i)).y;
-        viewpoint_to_others(2) = - _viewpoint.z + _input_cloud.at(points_in_fov_idx.at(i)).z;
-        double dif = acos(viewpoint_to_current_point.dot(viewpoint_to_others) / (viewpoint_to_current_point.norm() * viewpoint_to_others.norm()));
-        if(fabs(dif - 1) < min_dif)
-        {
-            min_dif = abs(dif - 1);
-            dist_view_to_others = viewpoint_to_others.norm();
-            temp_storage = dif;
-        }
+        octomap::point3d new_point(_input_cloud.at(new_points_in_range_idx.at(i)).x,
+                                   _input_cloud.at(new_points_in_range_idx.at(i)).y,
+                                   _input_cloud.at(new_points_in_range_idx.at(i)).z);
+        oc_tree.updateNode(new_point, true);
     }
-    
-    std::cout << temp_storage << " " << dist_view_to_others << std::endl;
-    result = (dist_view_to_others * sqrt(1 - pow(temp_storage, 2.0))) < VOXEL_SIZE;
 }

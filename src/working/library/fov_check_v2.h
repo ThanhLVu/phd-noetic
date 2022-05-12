@@ -4,6 +4,10 @@
 #include "pcl/kdtree/kdtree.h"
 #include "pcl/kdtree/kdtree_flann.h"
 
+#include <octomap/octomap.h>
+#include <octomap/OcTree.h>
+#include <octomap/OccupancyOcTreeBase.h>
+
 #include <vector>
 #include <stdlib.h>
 #include <algorithm>
@@ -16,7 +20,7 @@ class FOVCheckV2
 public:
     const double INITIAL_RANGE = 1.8;
     const double RANGE_INCREASE_STEP = 2;
-    const double FOV_LIMITS = 20 * M_PI / 180;
+    const double FOV_LIMITS = 35 * M_PI / 180;
     const float VOXEL_SIZE = 0.5;
 
     /*!
@@ -43,7 +47,7 @@ protected:
     /*!
     *   Check the angle of all points in range
     */
-    void checkAngle(std::vector<int>&, std::vector<int>&);
+    void checkAngle(std::vector<int>&, std::vector<int>&, octomap::OcTree&);
 
     /*!
     *   Remove all old points, keep new points from search function
@@ -63,13 +67,18 @@ protected:
     /*!
     *   Check for visibility (Line of sight)
     */
-    void visCheck(int&, std::vector<int>&, bool&);
+    void visCheck(int&, octomap::OcTree&, bool&);
+
+    /*!
+    *   Update the oc tree with the latest points in fov
+    */
+    void updateOctree(std::vector<int>&, octomap::OcTree&);
 
     // Inputs
     pcl::PointCloud<pcl::PointXYZ> _input_cloud;
     pcl::PointCloud<pcl::PointNormal> _input_cloud_normal;
     pcl::PointXYZ _fov_center;
-    int _fov_idx;
+    int _fov_center_idx;
     pcl::PointNormal _viewpoint;
     bool _break_expand_flag;
 };

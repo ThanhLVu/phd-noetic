@@ -22,6 +22,10 @@
 #include <random>
 #include <Eigen/Dense>
 
+#include <octomap/octomap.h>
+#include <octomap/OcTree.h>
+#include <octomap/OccupancyOcTreeBase.h>
+
 /**
  * This code convert stl file into marker msg which can be displayed in rviz
  */
@@ -66,9 +70,9 @@ void loadVoxelFile(VoxelizedObj &obj)
 
     for (int i = 0; i < sparse_model.voxels().size(); i++)
     {
-        obj.positions.at(i).x = (unsigned short)sparse_model.voxels().at(i).x - 110;
-        obj.positions.at(i).y = (unsigned short)sparse_model.voxels().at(i).y - 128;
-        obj.positions.at(i).z = (unsigned short)sparse_model.voxels().at(i).z - 56;
+        obj.positions.at(i).x = (unsigned short)sparse_model.voxels().at(i).x - 110 - 0.5;
+        obj.positions.at(i).y = (unsigned short)sparse_model.voxels().at(i).y - 128 - 0.5;
+        obj.positions.at(i).z = (unsigned short)sparse_model.voxels().at(i).z - 56 - 0.5;
     }
 
     // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
@@ -346,9 +350,9 @@ int main(int argc, char **argv)
         ROS_INFO("Finished loading model into rviz.");
 
         pcl::PointNormal viewpoint;
-        viewpoint.x = 40;
-        viewpoint.y = 10;
-        viewpoint.z = 110;
+        viewpoint.x = 39.5;
+        viewpoint.y = 9.5;
+        viewpoint.z = 109.5;
         viewpoint.normal_x = -1;
         viewpoint.normal_y = 0;
         viewpoint.normal_z = -1;
@@ -385,6 +389,21 @@ int main(int argc, char **argv)
         int no_fov_points_above_bucket = temp_var_merged_size - temp_var.size();
         float coverage_percentage = (float)no_fov_points_above_bucket / (float)temp_var_merged_size * 100;
         std::cout << "The sensor covered " << coverage_percentage << " percent of the load" << std::endl;
+
+        // octomap::OcTree tree(1);
+        // for(int i=0; i<obj.positions.size(); i++)
+        // {
+        //     octomap::point3d a_point(obj.positions.at(i).x, obj.positions.at(i).y, obj.positions.at(i).z);
+        //     tree.updateNode(a_point,true);
+        // }
+
+        // octomap::point3d origin(49.5, 9.5, 109.5);
+        // octomap::point3d direction(-1,0,-1);
+        // octomap::point3d end;
+
+        // bool success = tree.castRay(origin, direction, end, true);
+        // std::cout << fov_center_point.x << " " << fov_center_point.y << " " << fov_center_point.z << std::endl;
+        // std::cout << end << std::endl;
 
         ROS_INFO("Finished one loop. Press enter to continue");
         std::cin.ignore();

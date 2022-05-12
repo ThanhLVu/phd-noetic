@@ -26,6 +26,7 @@ find_package(catkin REQUIRED
 ## System dependencies are found with CMake's conventions
 find_package(OpenCV REQUIRED)
 find_package(PCL 1.7 REQUIRED)
+find_package(octomap REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -128,6 +129,7 @@ CATKIN_DEPENDS cv_bridge image_transport rospy roscpp sensor_msgs std_msgs tf2_r
 include_directories(
 	${catkin_INCLUDE_DIRS}
 	${PCL_INCLUDE_DIRS}
+  ${OCTOMAP_INCLUDE_DIRS}
   library
 )
 
@@ -214,7 +216,7 @@ add_definitions(${PCL_DEFINITIONS})
 
 link_directories(${CMAKE_SOURCE_DIR}/working/library)
 add_library(library library/expand_search.cpp library/clustering.cpp library/vox-file/vox_file.cpp library/fov_check.cpp library/generate_viewpoint.cpp library/fov_check_v2.cpp)
-#target_link_libraries(library ${catkin_LIBRARIES})
+target_link_libraries(library ${catkin_LIBRARIES} ${OCTOMAP_LIBRARIES})
 
 add_executable (remove_ground_extract_cluster src/remove_ground_extract_cluster.cpp)
 target_link_libraries (remove_ground_extract_cluster ${PCL_LIBRARIES} ${catkin_LIBRARIES} library)
@@ -262,7 +264,7 @@ add_executable (voxelize_3d_object src/voxelize_3d_object.cpp)
 target_link_libraries (voxelize_3d_object ${catkin_LIBRARIES} ${PCL_LIBRARIES} library)
 
 add_executable (voxelize_3d_object_v2 src/voxelize_3d_object_v2.cpp)
-target_link_libraries (voxelize_3d_object_v2 ${catkin_LIBRARIES} ${PCL_LIBRARIES} library)
+target_link_libraries (voxelize_3d_object_v2 ${catkin_LIBRARIES} ${PCL_LIBRARIES} library ${OCTOMAP_LIBRARIES})
 
 catkin_install_python(PROGRAMS
   scripts/server_endpoint.py
