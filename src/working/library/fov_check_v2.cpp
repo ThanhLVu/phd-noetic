@@ -86,6 +86,12 @@ void FOVCheckV2::findNotPreviouslyExistedPoints(std::vector<int> &old_points_in_
             i--;   
         } 
     }
+
+    // for(int i=0; i<old_points_in_range.size(); i++)
+    // {
+    //     auto new_points_end = std::remove(new_points_in_range.begin(), new_points_in_range.end(), old_points_in_range.at(i));
+    //     new_points_in_range.erase(new_points_end, new_points_in_range.end());
+    // }
     old_points_in_range = temp_storage;
 }
 
@@ -140,6 +146,7 @@ void FOVCheckV2::visCheck(int &current_point_idx, octomap::OcTree &oc_tree, bool
     bool hit_something = oc_tree.castRay(origin, direction, end, true, 200);
 
     if(hit_something == false) result = true;
+    // If hit something then check if it is behind or infront of the current point
     else
         result = false;
 }

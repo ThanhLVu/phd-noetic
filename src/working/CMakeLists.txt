@@ -266,6 +266,9 @@ target_link_libraries (voxelize_3d_object ${catkin_LIBRARIES} ${PCL_LIBRARIES} l
 add_executable (voxelize_3d_object_v2 src/voxelize_3d_object_v2.cpp)
 target_link_libraries (voxelize_3d_object_v2 ${catkin_LIBRARIES} ${PCL_LIBRARIES} library ${OCTOMAP_LIBRARIES})
 
+add_executable (ex_scan_lidar_reader src/ex_scan_lidar_reader.cpp)
+target_link_libraries (ex_scan_lidar_reader ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
+
 catkin_install_python(PROGRAMS
   scripts/server_endpoint.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

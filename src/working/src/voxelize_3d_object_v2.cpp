@@ -349,61 +349,84 @@ int main(int argc, char **argv)
         visualizeVoxel(obj, publisher);
         ROS_INFO("Finished loading model into rviz.");
 
-        pcl::PointNormal viewpoint;
-        viewpoint.x = 39.5;
-        viewpoint.y = 9.5;
-        viewpoint.z = 109.5;
-        viewpoint.normal_x = -1;
-        viewpoint.normal_y = 0;
-        viewpoint.normal_z = -1;
+        // Viewpoint 1
+        pcl::PointNormal viewpoint1;
+        viewpoint1.x = 39.5;
+        viewpoint1.y = 9.5;
+        viewpoint1.z = 109.5;
+        viewpoint1.normal_x = -1;
+        viewpoint1.normal_y = 0;
+        viewpoint1.normal_z = -1;
 
-        int fov_center_point_idx;
-        pcl::PointXYZ fov_center_point;
-        findFOVCenterVoxel(obj, above_bucket_points_idx, viewpoint, fov_center_point_idx);
-        fov_center_point = obj.positions.at(fov_center_point_idx);
-        ROS_INFO("Finished calculating the fov center point.");
+        int fov1_center_point_idx;
+        pcl::PointXYZ fov1_center_point;
+        findFOVCenterVoxel(obj, above_bucket_points_idx, viewpoint1, fov1_center_point_idx);
+        fov1_center_point = obj.positions.at(fov1_center_point_idx);
+        ROS_INFO("Finished calculating the fov center point");
         
         std::vector<pcl::PointXYZ> debug_input;
         debug_input.clear();
-        pcl::PointXYZ viewpoint_pos(viewpoint.x, viewpoint.y, viewpoint.z);
-        pcl::PointXYZ direction_visualizer(viewpoint.x + 10 * viewpoint.normal_x,
-                                           viewpoint.y + 10 * viewpoint.normal_y, 
-                                           viewpoint.z + 10 * viewpoint.normal_z);
-        debug_input.push_back(viewpoint_pos);
-        debug_input.push_back(fov_center_point);
-        debug_input.push_back(viewpoint_pos);
+        pcl::PointXYZ viewpoint1_pos(viewpoint1.x, viewpoint1.y, viewpoint1.z);
+        pcl::PointXYZ direction_visualizer(viewpoint1.x + 10 * viewpoint1.normal_x,
+                                           viewpoint1.y + 10 * viewpoint1.normal_y, 
+                                           viewpoint1.z + 10 * viewpoint1.normal_z);
+        debug_input.push_back(viewpoint1_pos);
+        debug_input.push_back(fov1_center_point);
+        debug_input.push_back(viewpoint1_pos);
         debug_input.push_back(direction_visualizer);
         debugVisualizer(debug_input, publisher_debug);
         ROS_INFO("Finished visualize debug information.");
 
-        FOVCheckV2 fov_checker(obj.positions, obj.normals, fov_center_point_idx, viewpoint);
-        std::vector<int> fov_points_idx;
-        fov_checker.initiateFOVCheck(fov_points_idx);
-        visualizeFOV(obj, fov_points_idx, publisher_fov);
+        FOVCheckV2 fov1_checker(obj.positions, obj.normals, fov1_center_point_idx, viewpoint1);
+        std::vector<int> fov1_points_idx;
+        fov1_checker.initiateFOVCheck(fov1_points_idx);
+        visualizeFOV(obj, fov1_points_idx, publisher_fov);
         ROS_INFO("Finished finding the fov and visualize them in Rviz");
 
-        std::vector<int> temp_var = above_bucket_points_idx.indices;
-        temp_var.insert(temp_var.begin(), fov_points_idx.begin(), fov_points_idx.end());
+        // Viewpoint 2
+        pcl::PointNormal viewpoint2;
+        viewpoint2.x = -89.5;
+        viewpoint2.y = 9.5;
+        viewpoint2.z = 109.5;
+        viewpoint2.normal_x = 1;
+        viewpoint2.normal_y = 0;
+        viewpoint2.normal_z = -2;
+
+        int fov2_center_point_idx;
+        pcl::PointXYZ fov2_center_point;
+        findFOVCenterVoxel(obj, above_bucket_points_idx, viewpoint2, fov2_center_point_idx);
+        fov2_center_point = obj.positions.at(fov2_center_point_idx);
+        ROS_INFO("Finished calculating the fov center point");
+
+        pcl::PointXYZ viewpoint2_pos(viewpoint2.x, viewpoint2.y, viewpoint2.z);
+        pcl::PointXYZ direction_visualizer2(viewpoint2.x + 10 * viewpoint2.normal_x,
+                                           viewpoint2.y + 10 * viewpoint2.normal_y, 
+                                           viewpoint2.z + 10 * viewpoint2.normal_z);
+
+        debug_input.push_back(viewpoint2_pos);
+        debug_input.push_back(fov2_center_point);
+        debug_input.push_back(viewpoint2_pos);
+        debug_input.push_back(direction_visualizer2);
+        debugVisualizer(debug_input, publisher_debug);
+        ROS_INFO("Finished visualize debug information.");
+
+        FOVCheckV2 fov2_checker(obj.positions, obj.normals, fov2_center_point_idx, viewpoint2);
+        std::vector<int> fov2_points_idx;
+        fov2_checker.initiateFOVCheck(fov2_points_idx);
+        visualizeFOV(obj, fov2_points_idx, publisher_fov);
+        ROS_INFO("Finished finding the fov and visualize them in Rviz");
+
+        std::vector<int> temp_var;
+        temp_var.insert(temp_var.begin(), fov1_points_idx.begin(), fov1_points_idx.end());
+        temp_var.insert(temp_var.begin(), fov2_points_idx.begin(), fov2_points_idx.end());
+        removeDup(temp_var);
+        // visualizeFOV(obj, temp_var, publisher_fov);
+        temp_var.insert(temp_var.begin(), above_bucket_points_idx.indices.begin(), above_bucket_points_idx.indices.end());
         int temp_var_merged_size = temp_var.size();
         removeDup(temp_var);
         int no_fov_points_above_bucket = temp_var_merged_size - temp_var.size();
         float coverage_percentage = (float)no_fov_points_above_bucket / (float)temp_var_merged_size * 100;
         std::cout << "The sensor covered " << coverage_percentage << " percent of the load" << std::endl;
-
-        // octomap::OcTree tree(1);
-        // for(int i=0; i<obj.positions.size(); i++)
-        // {
-        //     octomap::point3d a_point(obj.positions.at(i).x, obj.positions.at(i).y, obj.positions.at(i).z);
-        //     tree.updateNode(a_point,true);
-        // }
-
-        // octomap::point3d origin(49.5, 9.5, 109.5);
-        // octomap::point3d direction(-1,0,-1);
-        // octomap::point3d end;
-
-        // bool success = tree.castRay(origin, direction, end, true);
-        // std::cout << fov_center_point.x << " " << fov_center_point.y << " " << fov_center_point.z << std::endl;
-        // std::cout << end << std::endl;
 
         ROS_INFO("Finished one loop. Press enter to continue");
         std::cin.ignore();
