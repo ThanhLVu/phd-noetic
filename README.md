@@ -52,3 +52,23 @@ Vigir package for point cloud to mesh
 + For NextOre project: 
     x = 0.3, y = 0.5
     These values are not fixed and can be changed depending on the point cloud
+    
+HALO Annotation:
++ After have the both cameras on:
+    rosrun working combine_cameras_real
+    
+Modbus 
++ Slave Simulator (https://www.modbusdriver.com/diagslave.html)
++ Git clone modified ros-modbus-device-driver 
+    git clone https://github.com/ThanhLVu/modified-ros-modbus-device-driver.git
++ To start the Modbus simulated slave
+    Change directory to path/diagslave/x86_64-linux-gnu
+    sudo ./diagslave -m tcp
++ To start ros and modbus connection
++ Check ~/.bashrc for IP address setting
++ Start roscore
++ Run ros-modbus-device-driver
+    rosrun ros_modbus_device_driver modbus_device_driver.py _mapping:=path/to/config/file
++ Run talker C++ code (can be replace with command line rostopic pub)
+    rosrun working modbus_talker	 
+
