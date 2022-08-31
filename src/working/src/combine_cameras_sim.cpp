@@ -71,7 +71,7 @@ void leftCamCallback(const sensor_msgs::PointCloud2ConstPtr &msg) {
     pcl::PassThrough<pcl::PointXYZRGB> pass;
     pass.setInputCloud(left_cam_cloud);
     pass.setFilterFieldName("z");
-    pass.setFilterLimits(0.0, 3.0);
+    pass.setFilterLimits(0.0, 10.0);
     pass.filter(*left_cam_cloud);
 
 //     boost::shared_ptr <pcl::visualization::PCLVisualizer> viewer_test_left;
@@ -107,7 +107,7 @@ void rightCamCallback(const sensor_msgs::PointCloud2ConstPtr &msg) {
     pcl::PassThrough<pcl::PointXYZRGB> pass;
     pass.setInputCloud(right_cam_cloud);
     pass.setFilterFieldName("z");
-    pass.setFilterLimits(0.0, 3.0);
+    pass.setFilterLimits(0.0, 10.0);
     pass.filter(*right_cam_cloud);
 
 //     boost::shared_ptr <pcl::visualization::PCLVisualizer> viewer_test_right;
@@ -327,29 +327,30 @@ void removeBackground()
 //Remove wall, leave exposed objects (removeGround + removeBackground again)
 void removeWall()
 {
-    pcl::PointIndices::Ptr inliers (new pcl::PointIndices());
-    // Create the segmentation object
-    pcl::SACSegmentation<pcl::PointXYZRGB> seg;
-    // Optional
-    seg.setOptimizeCoefficients (true);
-    // Mandatory
-    seg.setModelType(pcl::SACMODEL_PLANE);
-    seg.setMethodType(pcl::SAC_RANSAC);
-    seg.setMaxIterations (1000);
-    seg.setDistanceThreshold (0.01);
+    // pcl::PointIndices::Ptr inliers (new pcl::PointIndices());
+    // // Create the segmentation object
+    // pcl::SACSegmentation<pcl::PointXYZRGB> seg;
+    // // Optional
+    // seg.setOptimizeCoefficients (true);
+    // // Mandatory
+    // seg.setModelType(pcl::SACMODEL_PLANE);
+    // seg.setMethodType(pcl::SAC_RANSAC);
+    // seg.setMaxIterations (1000);
+    // seg.setDistanceThreshold (0.01);
 
-    // Create the filtering object
-    pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+    // // Create the filtering object
+    // pcl::ExtractIndices<pcl::PointXYZRGB> extract;
 
-    // Segment the largest planar component from the remaining cloud
-    seg.setInputCloud (background_removed_cloud);
-    seg.segment (*inliers, *coefficients_ptr);
+    // // Segment the largest planar component from the remaining cloud
+    // seg.setInputCloud (background_removed_cloud);
+    // seg.segment (*inliers, *coefficients_ptr);
 
-    // Extract the inliers
-    extract.setInputCloud (background_removed_cloud);
-    extract.setIndices (inliers);
-    extract.setNegative (true);
-    extract.filter (*wall_removed_cloud);
+    // // Extract the inliers
+    // extract.setInputCloud (background_removed_cloud);
+    // extract.setIndices (inliers);
+    // extract.setNegative (true);
+    // extract.filter (*wall_removed_cloud);
+    wall_removed_cloud = background_removed_cloud;
 }
 
 // Euclidean clustering
@@ -363,9 +364,9 @@ std::vector<pcl::PointIndices> euclideanClustering()
     cluster_indices.clear();
 
     pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec;
-    ec.setClusterTolerance (0.03); // 1cm
+    ec.setClusterTolerance (0.1); // 1cm
     ec.setMinClusterSize (200);
-    ec.setMaxClusterSize (50000);
+    ec.setMaxClusterSize (500000);
     ec.setSearchMethod (tree);
     ec.setInputCloud (wall_removed_cloud);
     ec.extract (cluster_indices);
@@ -579,13 +580,15 @@ void addPointToList(pcl::PointXYZ &input1, pcl::PointXYZ &input2, std::vector<ge
 void publishMarkersMsg(std::vector<singleCluster> &single_cluster)
 {
     visualization_msgs::Marker visualization_boxes;
-    visualization_boxes.header.frame_id = "right_camera_depth_optical_frame";
+    visualization_boxes.header.frame_id = "camera_1_depth_frame";
     visualization_boxes.header.stamp = ros::Time::now();
     visualization_boxes.lifetime = ros::Duration(1.0);
     visualization_boxes.action = visualization_msgs::Marker::ADD;
     visualization_boxes.pose.orientation.w = 1.0;
     visualization_boxes.type = visualization_msgs::Marker::LINE_LIST;
-    visualization_boxes.scale.x = 0.001;
+    visualization_boxes.scale.x = 0.05;
+    visualization_boxes.scale.y = 0.05;
+    visualization_boxes.scale.z = 0.05;
     visualization_boxes.color.a = 1.0;
     visualization_boxes.color.r = 1.0;
 
@@ -629,6 +632,23 @@ void cloudProcess()
     pcaClusterBox(single_cluster_vec);
     // drawWorldView(single_cluster_vec);
     publishMarkersMsg(single_cluster_vec);
+
+    std::vector<pcl::PointXYZ> corners_avg;
+    corners_avg.resize(single_cluster_vec.size());
+    for(int unique_index=0; unique_index<single_cluster_vec.size(); unique_index++)
+    {
+        for(int i=0; i<8; i++)
+        {
+            corners_avg.at(unique_index).x += single_cluster_vec.at(unique_index).bounding_box.at(i).x;
+            corners_avg.at(unique_index).y += single_cluster_vec.at(unique_index).bounding_box.at(i).y;
+            corners_avg.at(unique_index).z += single_cluster_vec.at(unique_index).bounding_box.at(i).z;
+        }
+        corners_avg.at(unique_index).x = corners_avg.at(unique_index).x / 8;
+        corners_avg.at(unique_index).y = corners_avg.at(unique_index).y / 8;
+        corners_avg.at(unique_index).z = corners_avg.at(unique_index).z / 8;
+        std::cout << "Cluster ID: " << unique_index << std::endl;
+        std::cout << "Bounding box center: " << corners_avg.at(unique_index) << std::endl;
+    }
 }
 
 int main(int argc, char **argv)
@@ -643,8 +663,8 @@ int main(int argc, char **argv)
     ros::Rate rate(10.0);
 
     // Get point cloud data of each camera
-    ros::Subscriber left_pointcloud_sub = nh.subscribe("/left_camera/depth/points", 1, leftCamCallback);
-    ros::Subscriber right_pointcloud_sub = nh.subscribe("/right_camera/depth/points", 1, rightCamCallback);
+    ros::Subscriber left_pointcloud_sub = nh.subscribe("/camera_2/depth/points", 1, leftCamCallback);
+    ros::Subscriber right_pointcloud_sub = nh.subscribe("/camera_1/depth/points", 1, rightCamCallback);
 
     // Publish rviz marker topic
     markers_pub = nh.advertise<visualization_msgs::Marker>( "visualization_markers", 0);
@@ -655,7 +675,7 @@ int main(int argc, char **argv)
         try
         {
             // Change link name if needed
-            transformStamped = tfBuffer.lookupTransform("right_camera_depth_optical_frame", "left_camera_depth_optical_frame", ros::Time(0));
+            transformStamped = tfBuffer.lookupTransform("camera_1_depth_frame", "camera_2_depth_frame", ros::Time(0));
         }
         catch (tf2::TransformException &ex) {
             ROS_WARN("%s", ex.what());
